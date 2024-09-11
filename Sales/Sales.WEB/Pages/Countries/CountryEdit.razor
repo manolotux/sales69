@@ -1,0 +1,70 @@
+﻿@page "/countries/edit/{Id:int}"
+
+<h3>Editar Pais</h3>
+
+@if (country is null)
+{
+	<div class="d-flex align-items-center justify-content-center gap-4">
+		<strong>Iniciando datos...</strong>
+		<div class="spinner-border" role="status" aria-hidden="true"></div>
+	</div>
+}
+else
+{
+	<CountryForm Country="country" Submit="Edit" Return="Cancelar"></CountryForm>
+}
+
+@code {
+	private Country? country;
+
+	[Parameter]
+	public int Id { get; set; }
+	
+	protected override async Task OnInitializedAsync()
+	{
+		var response = await repositorio.Get<Country>($"api/countries/{Id}");
+
+		if (response.Error)
+		{
+			if (response.HttpResponseMessage.StatusCode == HttpStatusCode.NotFound)
+			{
+				nav.NavigateTo("/countries");
+				return;
+			}
+
+			var message = await response.GetErrorMessageAsync();
+			await alert.FireAsync("Error", message);
+			nav.NavigateTo("/countries");
+			return;
+		}
+
+		country = response.Response;
+	}
+
+	private async Task Edit()
+	{
+		try
+		{
+			var response = await repositorio.Put("api/countries/update", country);
+			if (response.Error)
+			{
+				var message = await response.GetErrorMessageAsync();
+				await alert.FireAsync("Error", message);
+				return;
+			}
+
+			nav.NavigateTo("/countries");
+		}
+		catch (Exception e)
+		{
+			await alert.FireAsync("Error", e.Message);
+		}
+	}
+
+
+	private void Cancelar()
+	{
+		nav.NavigateTo("/countries");
+	}
+
+}

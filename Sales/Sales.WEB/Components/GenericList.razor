@@ -1,0 +1,49 @@
+﻿@typeparam TItem
+
+@if(List is null)
+{
+	@if (Loading == null)
+	{
+		<div class="d-flex align-items-center justify-content-center gap-4">
+			<strong>Iniciando datos...</strong>
+			<div class="spinner-border" role="status" aria-hidden="true"></div>
+		</div>
+	}
+	else
+	{
+		@Loading
+	}
+}
+else if(List.Count == 0)
+{
+	@if (NoRecords == null)
+	{
+		<strong class="text-center">Aun no existen registros, crea tu primer registro para iniciar el historial de datos</strong>
+	}
+	else
+	{
+		@NoRecords
+	}
+}
+else
+{
+	@Body
+}
+
+@code {
+
+	[Parameter]
+	public RenderFragment? Loading { get; set; }
+
+	[Parameter]
+	public RenderFragment? NoRecords { get; set; }
+
+	[Parameter]
+	[EditorRequired]
+	public RenderFragment Body { get; set; } = null!;
+
+	[Parameter]
+	[EditorRequired]
+	public List<TItem>? List { get; set; }
+
+}

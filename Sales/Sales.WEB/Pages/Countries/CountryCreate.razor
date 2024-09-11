@@ -1,0 +1,37 @@
+﻿@page "/countries/create"
+
+<h3>Nuevo pais</h3>
+
+<CountryForm Country="country" Submit="Create" Return="Cancelar"></CountryForm>
+
+
+@code {
+	private Country country = new();
+
+	private async Task Create()
+	{
+		try
+		{
+			var response = await repositorio.Post("api/countries/add", country);
+			if (response.Error)
+			{
+				var message = await response.GetErrorMessageAsync();
+				await alert.FireAsync("Error", message);
+				return;
+			}
+
+			nav.NavigateTo("/countries");
+		}
+		catch (Exception e)
+		{
+			await alert.FireAsync("Error", e.Message);
+		}
+	}
+
+
+	private void Cancelar()
+	{
+		nav.NavigateTo("/countries");
+	}
+
+}
