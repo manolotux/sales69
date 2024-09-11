@@ -21,7 +21,12 @@ builder.Services.AddCors(o =>
     });
 });
 
+//Inyectar servicios
+builder.Services.AddTransient<SeedDb>();
+
 var app = builder.Build();
+
+SeedData(app);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -39,3 +44,15 @@ app.UseCors("default");
 app.MapControllers();
 
 app.Run();
+return;
+
+void SeedData(WebApplication appService)
+{
+	var scopeFactory = appService.Services.GetService<IServiceScopeFactory>();
+
+	using var scope = scopeFactory!.CreateScope();
+
+	var service = scope.ServiceProvider.GetService<SeedDb>();
+	service!.SeedAsync().Wait();
+
+}
