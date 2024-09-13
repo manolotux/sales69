@@ -1,0 +1,37 @@
+﻿@page "/categories/create"
+
+<h3>Nuevo pais</h3>
+
+<CategoryForm Category="categoria" Submit="Create" Return="Cancelar"></CategoryForm>
+
+
+@code {
+	private Category categoria = new();
+
+	private async Task Create()
+	{
+		try
+		{
+			var response = await repositorio.Post("api/categories/add", categoria);
+			if (response.Error)
+			{
+				var message = await response.GetErrorMessageAsync();
+				await alert.FireAsync("Error", message);
+				return;
+			}
+
+			nav.NavigateTo("/categories");
+		}
+		catch (Exception e)
+		{
+			await alert.FireAsync("Error", e.Message);
+		}
+	}
+
+
+	private void Cancelar()
+	{
+		nav.NavigateTo("/categories");
+	}
+
+}

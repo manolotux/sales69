@@ -1,0 +1,70 @@
+﻿@page "/categories/edit/{Id:int}"
+
+<h3>Editar Categoria</h3>
+
+@if (category is null)
+{
+	<div class="d-flex align-items-center justify-content-center gap-4">
+		<strong>Iniciando datos...</strong>
+		<div class="spinner-border" role="status" aria-hidden="true"></div>
+	</div>
+}
+else
+{
+	<CategoryForm Category="category" Submit="Edit" Return="Cancelar"></CategoryForm>
+}
+
+@code {
+	private Category? category;
+
+	[Parameter]
+	public int Id { get; set; }
+	
+	protected override async Task OnInitializedAsync()
+	{
+		var response = await repositorio.Get<Category>($"api/categories/{Id}");
+
+		if (response.Error)
+		{
+			if (response.HttpResponseMessage.StatusCode == HttpStatusCode.NotFound)
+			{
+				nav.NavigateTo("/categories");
+				return;
+			}
+
+			var message = await response.GetErrorMessageAsync();
+			await alert.FireAsync("Error", message);
+			nav.NavigateTo("/categories");
+			return;
+		}
+
+		category = response.Response;
+	}
+
+	private async Task Edit()
+	{
+		try
+		{
+			var response = await repositorio.Put("api/categories/update", category);
+			if (response.Error)
+			{
+				var message = await response.GetErrorMessageAsync();
+				await alert.FireAsync("Error", message);
+				return;
+			}
+
+			nav.NavigateTo("/categories");
+		}
+		catch (Exception e)
+		{
+			await alert.FireAsync("Error", e.Message);
+		}
+	}
+
+
+	private void Cancelar()
+	{
+		nav.NavigateTo("/categories");
+	}
+
+}

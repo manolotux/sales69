@@ -12,11 +12,22 @@ namespace Sales.API.Controllers
         [HttpGet("list")]
         public async Task<IActionResult> GetAsync()
         {
-	        var consulta = await _context.Countries.ToListAsync();
+	        var consulta = await _context.Countries
+		        .Include(z => z.States)
+		        .ToListAsync();
 			return Ok(consulta);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("listfull")]
+        public async Task<IActionResult> GetFullAsync()
+        {
+	        var consulta = await _context.Countries
+		        .Include(z => z.States!)
+		        .ToListAsync();
+	        return Ok(consulta);
+        }
+
+		[HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(int id)
         {
 	        var consulta = await _context.Countries.FirstOrDefaultAsync(z=> z.Id == id);
