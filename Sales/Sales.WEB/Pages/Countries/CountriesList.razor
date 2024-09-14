@@ -24,6 +24,7 @@
 				<td>@pais.Name</td>
 				<td>@pais.StatesCount</td>
 				<td>
+					<a class="btn btn-info" href="/countries/states/list/@pais.Id">Estados</a>
 					<a class="btn btn-warning" href="/countries/edit/@pais.Id">Editar</a>
 					<button class="btn btn-danger" @onclick="() => Delete(pais.Id)">Borrar</button>
 				</td>

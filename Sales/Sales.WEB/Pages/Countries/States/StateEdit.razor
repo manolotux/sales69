@@ -1,0 +1,70 @@
+﻿@page "/countries/states/edit/{Id:int}"
+
+<h3>Editar Estado</h3>
+
+@if (state is null)
+{
+	<div class="d-flex align-items-center justify-content-center gap-4">
+		<strong>Iniciando datos...</strong>
+		<div class="spinner-border" role="status" aria-hidden="true"></div>
+	</div>
+}
+else
+{
+	<StateForm State="state" Submit="Edit" Return="Cancelar"></StateForm>
+}
+
+@code {
+	private State? state;
+
+	[Parameter]
+	public int Id { get; set; }
+	
+	protected override async Task OnInitializedAsync()
+	{
+		var response = await repositorio.Get<State>($"api/states/{Id}");
+
+		if (response.Error)
+		{
+			if (response.HttpResponseMessage.StatusCode == HttpStatusCode.NotFound)
+			{
+				nav.NavigateTo("/countries");
+				return;
+			}
+
+			var message = await response.GetErrorMessageAsync();
+			await alert.FireAsync("Error", message);
+			nav.NavigateTo("/countries");
+			return;
+		}
+
+		state = response.Response;
+	}
+
+	private async Task Edit()
+	{
+		try
+		{
+			var response = await repositorio.Put("api/states/update", state);
+			if (response.Error)
+			{
+				var message = await response.GetErrorMessageAsync();
+				await alert.FireAsync("Error", message);
+				return;
+			}
+
+			Cancelar();
+		}
+		catch (Exception e)
+		{
+			await alert.FireAsync("Error", e.Message);
+		}
+	}
+
+
+	private void Cancelar()
+	{
+		nav.NavigateTo($"/countries/states/list/{state!.CountryId}");
+	}
+
+}

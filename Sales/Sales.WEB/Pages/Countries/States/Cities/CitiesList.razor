@@ -1,0 +1,133 @@
+﻿@page "/countries/states/cities/list/{Id:int}"
+
+<h3>Ciudades</h3>
+
+<div class="row mt-3">
+	<strong class="col-12 mb-2">Pais: @_state?.Name</strong>
+	<div class="col-12 align-content-center gap-2 flex-row">
+		<button class="btn btn-primary" @onclick="AddCity">
+			Nueva Ciudad
+		</button>
+		<button class="btn btn-danger" @onclick="Regresar">
+			Regresar
+		</button>
+	</div>
+	
+</div>
+
+<GenericList List="_cities">
+	<Body>
+		<table class="table-striped mt-3 table">
+			<thead>
+				<tr>
+					<th>Estado</th>
+					<th>Ciudades</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var ciudad in _cities!)
+				{
+					<tr>
+						<td>@ciudad.Name</td>
+						<td>
+							<a class="btn btn-warning" href="/countries/states/cities/edit/@ciudad.Id">Editar</a>
+							<button class="btn btn-danger" @onclick="() => Delete(ciudad.Id)">Borrar</button>
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</Body>
+</GenericList>
+
+@code {
+
+	private State? _state;
+	private List<City>? _cities;
+
+	[Parameter]
+	public int Id { get; set; }
+
+
+	private async Task CargaLista()
+	{
+		var response = await repositorio.Get<State>($"api/states/{Id}");
+		if (response.Error)
+		{
+			if (response.HttpResponseMessage.StatusCode == HttpStatusCode.NotFound)
+			{
+				await alert.FireAsync("Error", "No se pudo localizar el País");
+				nav.NavigateTo("/countries");
+				return;
+			}
+			var message = await response.GetErrorMessageAsync();
+			await alert.FireAsync("Error", message);
+			nav.NavigateTo("/countries");
+			return;
+		}
+
+		_state = response.Response!;
+
+		var responseCiudades = await repositorio.Get<List<City>>($"api/cities/list/{Id}");
+		if (responseCiudades.Error)
+		{
+			var message = await response.GetErrorMessageAsync();
+			await alert.FireAsync("Error", message);
+			nav.NavigateTo("/countries");
+			return;
+		}
+
+		_cities = responseCiudades.Response;
+	}
+
+	
+	protected override async Task OnInitializedAsync()
+	{
+		await CargaLista();
+	}
+
+	private async Task Delete(int id)
+	{
+		try
+		{
+			var confirmacion = await alert.FireAsync(new SweetAlertOptions
+				{
+					Title = "*** Confirmación ***",
+					Text = "¿Estas seguro de eliminar el registro?",
+					ShowCancelButton = true,
+					Icon = SweetAlertIcon.Question,
+					CancelButtonText = "No",
+					ConfirmButtonText = "Si"
+				});
+
+			if (!confirmacion.IsConfirmed) return;
+
+			var response = await repositorio.Delete($"api/cities/{id}");
+			if (response.Error)
+			{
+				var message = await response.GetErrorMessageAsync();
+				await alert.FireAsync("Error", message);
+				return;
+			}
+
+			_cities = null;
+			await CargaLista();
+		}
+		catch (Exception e)
+		{
+			await alert.FireAsync("Error", e.Message);
+		}
+	}
+
+	private void AddCity()
+	{
+		nav.NavigateTo($"/countries/states/cities/create/{Id}");
+	}
+
+	private void Regresar()
+	{
+		nav.NavigateTo($"/countries/states/list/{_state!.CountryId}");
+	}
+
+}

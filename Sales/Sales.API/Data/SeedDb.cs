@@ -1,89 +1,57 @@
-﻿using Sales.Shared.Entidades;
+﻿using Sales.API.Servicios;
+using Sales.Shared.Entidades;
 
 namespace Sales.API.Data
 {
-    public class SeedDb(AppDbContext _context)
+    public class SeedDb(AppDbContext _context, IApiService _apiService)
     {
         public async Task SeedAsync()
 		{
 			await _context.Database.EnsureCreatedAsync();
 			await CheckCountriesAsync();
-			await CheckCategoriesAsync();
 		}
 
 		private async Task CheckCountriesAsync()
 		{
 			if (!_context.Countries.Any())
 			{
-				_context.Countries.Add(new Country
-				{
-					Name = "México",
-					States = new List<State>
-					{
-						new()
-						{
-							Name = "Chiapas",
-							Cities = new List<City>
-							{
-								new() { Name = "Tuxtla Gutierrez" },
-								new() { Name = "Villa Flores" },
-								new() { Name = "Chiapa de Corzo" },
-								new() { Name = "San Cristobal de las Casas" },
-							}
-						},
-						new()
-						{
-							Name = "Veracruz",
-							Cities = new List<City>
-							{
-								new() { Name = "Coatzacoalcos" },
-								new() { Name = "Agua Dulce" },
-								new() { Name = "Mina" },
-								new() { Name = "Jalapa" },
-							}
-						}
-					}
-				});
-				_context.Countries.Add(new Country
-				{
-					Name = "Estados Unidos",
-					States = new List<State>
-					{
-						new()
-						{
-							Name = "Florida",
-							Cities = new List<City>
-							{
-								new() { Name = "Orlando" },
-								new() { Name = "Miami" },
-								new() { Name = "Tampa" },
-								new() { Name = "Key West" },
-							}
-						},
-						new()
-						{
-							Name = "Texas",
-							Cities = new List<City>
-							{
-								new() { Name = "Houston" },
-								new() { Name = "San Antonio" },
-								new() { Name = "Dallas" },
-								new() { Name = "Austin" },
-							}
-						}
-					}
-				});
-				await _context.SaveChangesAsync();
-			}
-		}
+				var listPaises = await _apiService.getListCountriesAsync();
 
-		private async Task CheckCategoriesAsync()
-		{
-			if (!_context.Categories.Any())
-			{
-				_context.Categories.Add(new Category { Name = "Categoria 1" });
-				_context.Categories.Add(new Category { Name = "Categoria 2" });
-				_context.Categories.Add(new Category { Name = "Categoria 3" });
+				if (listPaises.Countries == null || listPaises.Countries.Count == 0) return;
+				
+				foreach (var pais in listPaises.Countries.Where(z=> z.Iso2 is "MX" or "US" or "CO" or "CR"))
+				{
+					var newCountry = new Country
+					{
+						Name = pais.Name!,
+						States = new List<State>()
+					};
+					
+					var listEstados = await _apiService.getListStatesAsync(pais.Iso2!);
+
+					if (listEstados.States == null || listEstados.States.Count == 0) continue;
+
+					foreach (var estado in listEstados.States)
+					{
+						var newState = new State
+						{
+							Name = estado.Name!,
+							Cities = new List<City>()
+						};
+						
+						var listCiudades = await _apiService.getListCitiesAsync(pais.Iso2!, estado.Iso2!);
+						
+						if (listCiudades.Cities == null || listCiudades.Cities.Count == 0) continue;
+						
+						foreach (var newCity in listCiudades.Cities.Select(ciudad => new City { Name = ciudad.Name! }))
+						{
+							newState.Cities.Add(newCity);
+						}
+
+						newCountry.States.Add(newState);
+					}
+					_context.Countries.Add(newCountry);
+				}
 				await _context.SaveChangesAsync();
 			}
 		}

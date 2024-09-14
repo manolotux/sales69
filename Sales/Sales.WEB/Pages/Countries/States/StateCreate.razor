@@ -1,0 +1,41 @@
+﻿@page "/countries/states/create/{CountryId:int}"
+
+<h3>Nuevo Estado</h3>
+
+<StateForm State="state" Submit="Create" Return="Cancelar"></StateForm>
+
+
+@code {
+	[Parameter]
+	public int CountryId { get; set; }
+
+	private State state = new();
+	
+	private async Task Create()
+	{
+		try
+		{
+			state.CountryId = CountryId;
+			var response = await repositorio.Post("api/states/add", state);
+			if (response.Error)
+			{
+				var message = await response.GetErrorMessageAsync();
+				await alert.FireAsync("Error", message);
+				return;
+			}
+
+			Cancelar();
+		}
+		catch (Exception e)
+		{
+			await alert.FireAsync("Error", e.Message);
+		}
+	}
+
+
+	private void Cancelar()
+	{
+		nav.NavigateTo($"/countries/states/list/{CountryId}");
+	}
+
+}

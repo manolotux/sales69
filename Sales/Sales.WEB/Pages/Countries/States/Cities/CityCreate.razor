@@ -1,0 +1,41 @@
+﻿@page "/countries/states/cities/create/{StateId:int}"
+
+<h3>Nueva Ciudad</h3>
+
+<CityForm City="city" Submit="Create" Return="Cancelar"></CityForm>
+
+
+@code {
+	[Parameter]
+	public int StateId { get; set; }
+
+	private City city = new();
+	
+	private async Task Create()
+	{
+		try
+		{
+			city.StateId = StateId;
+			var response = await repositorio.Post("api/cities/add", city);
+			if (response.Error)
+			{
+				var message = await response.GetErrorMessageAsync();
+				await alert.FireAsync("Error", message);
+				return;
+			}
+
+			Cancelar();
+		}
+		catch (Exception e)
+		{
+			await alert.FireAsync("Error", e.Message);
+		}
+	}
+
+
+	private void Cancelar()
+	{
+		nav.NavigateTo($"/countries/states/cities/list/{StateId}");
+	}
+
+}

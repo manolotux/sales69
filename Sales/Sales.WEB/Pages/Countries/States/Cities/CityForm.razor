@@ -1,0 +1,42 @@
+﻿
+<EditForm EditContext="_editContext" OnValidSubmit="Submit">
+	<DataAnnotationsValidator />
+	
+	<div>
+		<label>Nombre</label>
+		<input class="form-control" type="text" @bind-value="@City.Name" />
+		<ValidationMessage For="@(() => City.Name)" />
+	</div>
+	
+
+	<div class="mt-3">
+		<button class="btn btn-primary" type="submit">
+			Guardar cambios
+		</button>
+		<button class="btn btn-success" @onclick="Return">
+			Cancelar
+		</button>
+	</div>
+
+</EditForm>
+
+@code {
+	private EditContext _editContext = null!;
+	
+	[Parameter]
+	[EditorRequired]
+	public City City { get; set; } = new();
+
+	[Parameter]
+	[EditorRequired]
+	public EventCallback Submit { get; set; }
+
+	[Parameter]
+	[EditorRequired]
+	public EventCallback Return { get; set; }
+
+	protected override void OnInitialized()
+	{
+		_editContext = new EditContext(City);
+	}
+}
