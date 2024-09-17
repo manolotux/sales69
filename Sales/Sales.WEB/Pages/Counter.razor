@@ -6,13 +6,21 @@
 
 <p role="status">Current count: @currentCount</p>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<button class="btn btn-primary" @onclick="IncrementCountASync">Click me</button>
 
 @code {
     private int currentCount = 0;
 
-    private void IncrementCount()
+    [CascadingParameter]
+	private Task<AuthenticationState> authenticationStateTask { get; set; } = null!;
+
+    private async Task IncrementCountASync()
     {
-        currentCount++;
+        var authState = await authenticationStateTask;
+        var isAuthenticated = authState.User.Identity!.IsAuthenticated;
+		if (isAuthenticated)
+		{
+			currentCount++;
+		}	
     }
 }

@@ -1,4 +1,5 @@
 ﻿@page "/countries/states/create/{CountryId:int}"
+@attribute [Authorize(Roles = "Admin")]
 
 <h3>Nuevo Estado</h3>
 
