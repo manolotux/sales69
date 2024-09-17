@@ -5,3 +5,16 @@
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
+
+<Pagination CurrentPage="@_currentPage" TotalPages="10" SelectedPage="SelectedPage"></Pagination>
+
+
+@code {
+
+	private int _currentPage = 1;
+
+	private void SelectedPage(int selectedPage)
+	{
+		_currentPage = selectedPage;
+	}
+}

@@ -1,0 +1,17 @@
+﻿<div class="input-group">
+	<input type="text" class="form-control" placeholder="@Placeholder" @bind="TextFilter" >
+	<button class="btn btn-outline-secondary" type="button" @onclick="() => OnFilter.InvokeAsync(TextFilter)">Filtrar</button>
+	<button class="btn btn-outline-secondary" type="button" @onclick="OnClear">Limpiar</button>
+</div>
+
+@code {
+	[Parameter] 
+    public string Placeholder { get; set; } = "Buscar...";
+	[Parameter]
+	public EventCallback<string> OnFilter { get; set; }
+
+	[Parameter]
+	public EventCallback OnClear { get; set; }
+
+	private string TextFilter = "";
+}

@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MySqlConnector;
+using Sales.API._Helpers;
 using Sales.API.Data;
+using Sales.Shared.DTO;
 using Sales.Shared.Entidades;
 
 namespace Sales.API.Controllers
@@ -10,14 +11,31 @@ namespace Sales.API.Controllers
     [Route("api/states")]
     public class StatesController(AppDbContext _context) : ControllerBase
     {
-        [HttpGet("list/{id:int}")]
-        public async Task<IActionResult> GetAsync(int id)
+        [HttpGet("list")]
+        public async Task<IActionResult> GetAsync([FromQuery] PaginationDTO pagination)
         {
-	        var consulta = await _context.States
-		        .Include(z => z.Cities!)
-		        .Where(z=> z.CountryId == id)
-				.ToListAsync();
-			return Ok(consulta);
+	        var consulta = _context.States.Where(z => z.CountryId == pagination.Id).AsQueryable();
+
+	        if (!string.IsNullOrWhiteSpace(pagination.Filter))
+		        consulta = consulta.Where(x => x.Name.ToLower().Contains(pagination.Filter.ToLower()));
+
+	        return Ok(await consulta.Include(z => z.Cities!)
+		        .OrderBy(x => x.Name)
+		        .Paginate(pagination)
+		        .ToListAsync());
+        }
+
+        [HttpGet("totalpages")]
+        public async Task<ActionResult<int>> GetPages([FromQuery] PaginationDTO pagination)
+        {
+	        var consulta = _context.States.Where(z => z.CountryId == pagination.Id).AsQueryable();
+
+	        if (!string.IsNullOrWhiteSpace(pagination.Filter))
+		        consulta = consulta.Where(x => x.Name.ToLower().Contains(pagination.Filter.ToLower()));
+
+			var totalStates = await consulta.CountAsync();
+	        var totalPages = (int)Math.Ceiling((double)totalStates / pagination.Records);
+	        return Ok(totalPages);
         }
 
 		[HttpGet("{id}")]

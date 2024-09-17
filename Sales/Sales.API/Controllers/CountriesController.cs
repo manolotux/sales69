@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Sales.API._Helpers;
 using Sales.API.Data;
+using Sales.Shared.DTO;
 using Sales.Shared.Entidades;
 
 namespace Sales.API.Controllers
@@ -10,13 +12,34 @@ namespace Sales.API.Controllers
     public class CountriesController(AppDbContext _context) : ControllerBase
     {
         [HttpGet("list")]
-        public async Task<IActionResult> GetAsync()
+        public async Task<IActionResult> GetAsync([FromQuery] PaginationDTO pagination)
         {
-	        var consulta = await _context.Countries
-		        .Include(z => z.States)
-		        .ToListAsync();
-			return Ok(consulta);
+	        var consulta = _context.Countries.AsQueryable();
+
+	        if (!string.IsNullOrWhiteSpace(pagination.Filter))	
+		        consulta = consulta.Where(x => x.Name.ToLower().Contains(pagination.Filter.ToLower()));	
+		        
+			return Ok(await consulta
+				.Include(z => z.States)
+				.OrderBy(x => x.Name)
+				.Paginate(pagination)
+				.ToListAsync());
         }
+
+        [HttpGet("totalpages")]
+        public async Task<ActionResult<int>> GetPages([FromQuery] PaginationDTO pagination)
+        {
+	        var consulta = _context.Countries.AsQueryable();
+
+	        if (!string.IsNullOrWhiteSpace(pagination.Filter))
+		        consulta = consulta.Where(x => x.Name.ToLower().Contains(pagination.Filter.ToLower()));
+
+			var totalCountries = await consulta.CountAsync();
+
+            var totalPages = (int)Math.Ceiling((double)totalCountries / pagination.Records);
+			return Ok(totalPages);
+        }
+
 
         [HttpGet("listfull")]
         public async Task<IActionResult> GetFullAsync()
