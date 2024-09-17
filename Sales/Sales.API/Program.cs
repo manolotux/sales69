@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Sales.API._Helpers;
 using Sales.API.Data;
 using Sales.API.Servicios;
+using Sales.Shared.Entidades;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,9 +29,21 @@ builder.Services.AddCors(o =>
     });
 });
 
+builder.Services.AddIdentity<User, IdentityRole>(x =>
+{
+    x.User.RequireUniqueEmail = true;
+    x.Password.RequireDigit = false;
+    x.Password.RequiredUniqueChars = 0;
+    x.Password.RequireLowercase = false;
+    x.Password.RequireNonAlphanumeric = false;
+    x.Password.RequireUppercase = false;
+}).AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
+
+
 //Inyectar servicios
 builder.Services.AddTransient<SeedDb>();
 builder.Services.AddScoped<IApiService, ApiService>();
+builder.Services.AddScoped<IUserHelper, UserHelper>();
 
 var app = builder.Build();
 
@@ -44,6 +59,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+app.UseAuthentication();
 
 app.UseCors("default");
 

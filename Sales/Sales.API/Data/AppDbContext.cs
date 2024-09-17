@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Sales.Shared.Entidades;
 
 namespace Sales.API.Data
 {
-    public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+    public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<User>(options)
     {
 	    public DbSet<Category> Categories { get; set; }
 	    public DbSet<City> Cities { get; set; }
