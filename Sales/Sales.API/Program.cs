@@ -1,6 +1,6 @@
+using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Sales.API._Helpers;
 using Sales.API.Data;
 using Sales.API.Servicios;
 using Sales.Shared.Entidades;
@@ -29,6 +29,8 @@ builder.Services.AddCors(o =>
     });
 });
 
+
+//Auntenticacion y autorizacion
 builder.Services.AddIdentity<User, IdentityRole>(x =>
 {
     x.User.RequireUniqueEmail = true;
@@ -38,6 +40,26 @@ builder.Services.AddIdentity<User, IdentityRole>(x =>
     x.Password.RequireNonAlphanumeric = false;
     x.Password.RequireUppercase = false;
 }).AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
+
+//JWTToken
+builder.Services.AddAuthentication(x =>
+{
+    x.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+    x.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+}).AddJwtBearer(x =>
+{
+    x.RequireHttpsMetadata = false;
+    x.SaveToken = true;
+    x.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["jwtKey"]!)),
+        ClockSkew = TimeSpan.Zero
+    };
+});
 
 
 //Inyectar servicios
