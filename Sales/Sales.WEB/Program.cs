@@ -17,6 +17,8 @@ builder.Services.AddSweetAlert2();
 
 //Autorizacion
 builder.Services.AddAuthorizationCore();
-builder.Services.AddScoped<AuthenticationStateProvider, AuthProviderTest>();
+builder.Services.AddScoped<AuthProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider, AuthProvider>(x=> x.GetRequiredService<AuthProvider>());
+builder.Services.AddScoped<ILoginService, AuthProvider>(x => x.GetRequiredService<AuthProvider>());
 
 await builder.Build().RunAsync();
