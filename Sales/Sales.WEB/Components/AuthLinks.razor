@@ -1,6 +1,12 @@
 ﻿<AuthorizeView>
 	<Authorized>
 		<span>Hola, @context.User.Identity!.Name</span>
+		@if (!string.IsNullOrEmpty(photoUser))
+		{
+			<div class="mx-2">
+				<img src="data:image/png;base64, @photoUser" style="width: 50px; height: 50px;" class="rounded-circle" alt="" />
+			</div>
+		}
 		<a href="/logout" class="nav-link btn btn-link">Salir</a>
 	</Authorized>
 	<NotAuthorized>
@@ -8,3 +14,20 @@
 		<a href="/login" class="nav-link btn btn-link">Ingresar</a>
 	</NotAuthorized>
 </AuthorizeView>
+
+@code {
+	private string? photoUser;
+
+	[CascadingParameter]
+	private Task<AuthenticationState> authenticationState { get; set; } = null!;
+
+	protected override async Task OnParametersSetAsync()
+	{
+		var authState = await authenticationState;
+		if (authState.User.Identity!.IsAuthenticated)
+		{
+			photoUser = authState.User.FindFirst("Photo")!.Value;
+		}
+	}
+
+}

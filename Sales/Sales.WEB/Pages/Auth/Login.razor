@@ -4,32 +4,42 @@
 @using Sales.WEB.Auth
 @inject ILoginService _loginService
 
-<h3>Iniciar sesion</h3>
+<div class="row">
+	<div class="col-md-4 offset-md-4">
+		<EditForm Model="loginDTO" OnValidSubmit="LoginAsync">
+			<DataAnnotationsValidator />
+			<div class="card bg-light">
+				<div class="card-header justify-content-center">
+					<span>
+						<i class="bi bi-person-circle" /> Iniciar Sesion
+					</span>
+				</div>
+				<div class="card-body">
+					<div class="mb-3">
+						<label>Email:</label>
+						<div>
+							<InputText type="email" class="form-control" @bind-Value="@loginDTO.Email"/>
+							<ValidationMessage For="@(() => loginDTO.Email)"/>
+						</div>
+					</div>
+					<div class="mb-3">
+						<label>Contraseña:</label>
+						<div>
+							<InputText type="password" class="form-control" @bind-Value="@loginDTO.Password"/>
+							<ValidationMessage For="@(() => loginDTO.Password)"/>
+						</div>
+					</div>
+				</div>
+				<Button type="submit" class="btn btn-primary">
+					<i class="bi bi-box-arrow-in-right" />
+					Ingresar
+				</Button>
+			</div>
+		</EditForm>
+	</div>
+</div>
 
-<EditForm Model="loginDTO" OnValidSubmit="LoginAsync">
-	<DataAnnotationsValidator />
-	<div class="row">
-		<div class="col-12">
-			<div class="mb-3">
-				<label>Email:</label>
-				<div>
-					<InputText type="email" class="form-control" @bind-Value="@loginDTO.Email" />
-					<ValidationMessage For="@(() => loginDTO.Email)" />
-				</div>
-			</div>
-			<div class="mb-3">
-				<label>Contraseña:</label>
-				<div>
-					<InputText type="password" class="form-control" @bind-Value="@loginDTO.Password" />
-					<ValidationMessage For="@(() => loginDTO.Password)" />
-				</div>
-			</div>
-		</div>
-	</div>
-	<div>
-		<Button type="submit" class="btn btn-primary">Ingresar</Button>
-	</div>
-</EditForm>
+
 
 @code {
 
