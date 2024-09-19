@@ -1,0 +1,53 @@
+﻿@page "/login"
+
+@using Sales.Shared.DTO
+@using Sales.WEB.Auth
+@inject ILoginService _loginService
+
+<h3>Iniciar sesion</h3>
+
+<EditForm Model="loginDTO" OnValidSubmit="LoginAsync">
+	<DataAnnotationsValidator />
+	<div class="row">
+		<div class="col-12">
+			<div class="mb-3">
+				<label>Email:</label>
+				<div>
+					<InputText type="email" class="form-control" @bind-Value="@loginDTO.Email" />
+					<ValidationMessage For="@(() => loginDTO.Email)" />
+				</div>
+			</div>
+			<div class="mb-3">
+				<label>Contraseña:</label>
+				<div>
+					<InputText type="password" class="form-control" @bind-Value="@loginDTO.Password" />
+					<ValidationMessage For="@(() => loginDTO.Password)" />
+				</div>
+			</div>
+		</div>
+	</div>
+	<div>
+		<Button type="submit" class="btn btn-primary">Ingresar</Button>
+	</div>
+</EditForm>
+
+@code {
+
+	private LoginDTO loginDTO = new();
+
+	private async Task LoginAsync()
+	{
+		var response = await repositorio.Post<LoginDTO, TokenDTO>("api/accounts/login", loginDTO);
+
+		if (response.Error)
+		{
+			var message = await response.GetErrorMessageAsync();
+			await alert.FireAsync("Error", message, SweetAlertIcon.Error);
+			return;
+		}
+
+		await _loginService.LoginAsync(response.Response!.Token);
+		nav.NavigateTo("/");
+	}
+
+}

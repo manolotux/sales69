@@ -11,12 +11,19 @@ namespace Sales.WEB.Repositorios
 
         public async Task<HttpResponseWrapper<T>> Get<T>(string url)
         {
-            var response = await _httpClient.GetAsync(url);
-            if (!response.IsSuccessStatusCode)
-                return new HttpResponseWrapper<T>(default, true, response);
+	        try
+	        {
+		        var response = await _httpClient.GetAsync(url);
+		        if (!response.IsSuccessStatusCode)
+			        return new HttpResponseWrapper<T>(default, true, response);
 
-            var result = await UnserializeAnswer<T>(response, _jsonSerializerOptions);
-            return new HttpResponseWrapper<T>(result, false, response);
+		        var result = await UnserializeAnswer<T>(response, _jsonSerializerOptions);
+		        return new HttpResponseWrapper<T>(result, false, response);
+			}
+	        catch (Exception e)
+	        {
+				return new HttpResponseWrapper<T>(default, true);
+			}
         }   
 
         public async Task<HttpResponseWrapper<object>> Post<T>(string url, T model)

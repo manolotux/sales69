@@ -1,0 +1,200 @@
+﻿@page "/register"
+@using Sales.Shared.DTO
+@using Sales.Shared.Shared
+@using Sales.WEB.Auth
+@inject ILoginService _loginService
+
+
+<h3>Registrar nuevo usuario</h3>
+
+<EditForm Model="userDTO" OnValidSubmit="CreateAsync">
+	<DataAnnotationsValidator />
+	<div class="row">
+		<div class="col-4">
+			<div class="mb-3">
+				<label>Nombre:</label>
+				<div>
+					<InputText class="form-control" @bind-Value="@userDTO.Name"/>
+					<ValidationMessage For="@(() => userDTO.Name)" />
+				</div>
+			</div>
+			<div class="mb-3">
+				<label>Email:</label>
+				<div>
+					<InputText type="email" class="form-control" @bind-Value="@userDTO.Email" />
+					<ValidationMessage For="@(() => userDTO.Email)" />
+				</div>
+			</div>
+			<div class="mb-3">
+				<label>Telefono:</label>
+				<div>
+					<InputText class="form-control" @bind-Value="@userDTO.PhoneNumber" />
+					<ValidationMessage For="@(() => userDTO.PhoneNumber)" />
+				</div>
+			</div>
+		</div>
+		<div class="col-4">
+			<div class="mb-3">
+				<label for="country">Pais:</label>
+				<select id="country" class="form-select" @bind:after="CountryChangedAsync" @bind="countryId">
+					<option value="0">-- Seleccione un Pais --</option>
+					@if (countries is not null)
+					{
+						@foreach (var country in countries)
+						{
+							<option value="@country.Id">@country.Name</option>
+						}
+					}
+				</select>
+			</div>
+
+			<div class="mb-3">
+				<label for="state">Estado:</label>
+				<select id="state" class="form-select" @bind:after="StateChangedAsync" @bind="stateId">
+					<option value="0">-- Seleccione un Estado --</option>
+					@if (states is not null)
+					{
+						@foreach (var state in states)
+						{
+							<option value="@state.Id">@state.Name</option>
+						}
+					}
+				</select>
+			</div>
+			
+			<div class="mb-3">
+				<label for="city">Ciudad:</label>
+				<select id="city" class="form-select" @bind="userDTO.CityId">
+					<option value="0">-- Seleccione una Ciudad --</option>
+					@if (cities is not null)
+					{
+						@foreach (var city in cities)
+						{
+							<option value="@city.Id">@city.Name</option>
+						}
+					}
+				</select>
+				<ValidationMessage For="@(() => userDTO.CityId)" />
+			</div>
+
+			<div class="mb-3">
+				<label>Foto:</label>
+				<div>
+					<InputText class="form-control" @bind-Value="@userDTO.Photo"/>
+					<ValidationMessage For="@(() => userDTO.Photo)"/>
+				</div>
+			</div>
+		</div>
+		<div class="col-4">
+			<div class="mb-3">
+				<label>Contraseña:</label>
+				<div>
+					<InputText type="password" class="form-control" @bind-Value="@userDTO.Password" />
+					<ValidationMessage For="@(() => userDTO.Password)" />
+				</div>
+			</div>
+			<div class="mb-3">
+				<label>Confirmar Contraseña:</label>
+				<div>
+					<InputText type="password" class="form-control" @bind-Value="@userDTO.PasswordConfirm" />
+					<ValidationMessage For="@(() => userDTO.PasswordConfirm)" />
+				</div>
+			</div>
+		</div>
+	</div>
+	<div>
+		<Button type="submit" class="btn btn-primary">Registrar</Button>
+	</div>
+</EditForm>
+
+@code {
+
+	private UserDTO userDTO = new();
+
+	private List<Country>? countries;
+	private List<State>? states;
+	private List<City>? cities;
+
+	private int stateId = 0;
+	private int countryId = 0;
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadCountries();
+	}
+
+	private async Task LoadCountries()
+	{
+		var response = await repositorio.Get<List<Country>>("api/countries/combo");
+		if (response.Error)
+		{
+			var message = await response.GetErrorMessageAsync();
+			await alert.FireAsync("Error", message, SweetAlertIcon.Error);
+			return;
+		}
+
+		countries = response.Response;
+	}
+
+	private async Task LoadStates(int CountryId)
+	{
+		var response = await repositorio.Get<List<State>>($"api/states/combo/{CountryId}");
+		if (response.Error)
+		{
+			var message = await response.GetErrorMessageAsync();
+			await alert.FireAsync("Error", message, SweetAlertIcon.Error);
+			return;
+		}
+
+		states = response.Response;
+	}
+
+	private async Task LoadCities(int StateId)
+	{
+		var response = await repositorio.Get<List<City>>($"api/cities/combo/{StateId}");
+		if (response.Error)
+		{
+			var message = await response.GetErrorMessageAsync();
+			await alert.FireAsync("Error", message, SweetAlertIcon.Error);
+			return;
+		}
+
+		cities = response.Response;
+	}
+
+	private async Task CountryChangedAsync()
+	{
+		stateId = 0;
+		states?.Clear();
+		cities?.Clear();
+		userDTO.CityId = 0;
+		await LoadStates(countryId);
+	}
+
+	private async Task CreateAsync()
+	{
+		userDTO.UserName = userDTO.Email;
+		userDTO.Usertype = UserType.User;
+
+		var response = await repositorio.Post<UserDTO, TokenDTO>("api/accounts/create", userDTO);
+
+		if (response.Error)
+		{
+			var message = await response.GetErrorMessageAsync();
+			await alert.FireAsync("Error", message, SweetAlertIcon.Error);
+			return;
+		}
+
+		await _loginService.LoginAsync(response.Response!.Token);
+		nav.NavigateTo("/");
+	}
+
+	private async Task StateChangedAsync()
+	{
+		cities?.Clear();
+		userDTO.CityId = 0;
+		await LoadCities(stateId);
+	}
+
+}

@@ -1,42 +1,50 @@
 ﻿@page "/categories"
-@attribute [Authorize(Roles = "Admin")]
 
-<h3>Paises</h3>
+<AuthorizeView>
+	<NotAuthorized>
+		<h2 class="mt-5">No estas autorizado</h2>
+	</NotAuthorized>
+	<Authorized>
+		<h3>Paises</h3>
 
-<NavLink class="btn btn-primary mb-3" href="/categories/create">
-	Nueva Categoria
-</NavLink>
+		<NavLink class="btn btn-primary mb-3" href="/categories/create">
+			Nueva Categoria
+		</NavLink>
 
-<div class="mb-3">
-	<Filter Placeholder="Buscar categoria..." OnFilter="OnFilter" OnClear="OnClear"></Filter>
-</div>
+		<div class="mb-3">
+			<Filter Placeholder="Buscar categoria..." OnFilter="OnFilter" OnClear="OnClear"></Filter>
+		</div>
 
-<Pagination CurrentPage="@currentPage" TotalPages="@totalPages" SelectedPage="SelectedPageAsync"></Pagination>
+		<Pagination CurrentPage="@currentPage" TotalPages="@totalPages" SelectedPage="SelectedPageAsync"></Pagination>
 
-<GenericList List="categorias">
-	<Body>
-	<table class="table-striped table">
-		<thead>
-		<tr>
-			<th></th>
-			<th>Categoria</th>
-		</tr>	
-		</thead>
-		<tbody>
-		@foreach (var pais in categorias!)
-		{
-			<tr>
-				<td>
-					<a class="btn btn-warning" href="/categories/edit/@pais.Id">Editar</a>
-					<button class="btn btn-danger" @onclick="() => Delete(pais.Id)">Borrar</button>
-				</td>
-				<td>@pais.Name</td>
-			</tr>
-		}
-		</tbody>	
-	</table>
-	</Body>
-</GenericList>
+		<GenericList List="categorias">
+			<Body>
+			<table class="table-striped table">
+				<thead>
+				<tr>
+					<th></th>
+					<th>Categoria</th>
+				</tr>	
+				</thead>
+				<tbody>
+				@foreach (var pais in categorias!)
+				{
+					<tr>
+						<td>
+							<a class="btn btn-warning" href="/categories/edit/@pais.Id">Editar</a>
+							<button class="btn btn-danger" @onclick="() => Delete(pais.Id)">Borrar</button>
+						</td>
+						<td>@pais.Name</td>
+					</tr>
+				}
+				</tbody>	
+			</table>
+			</Body>
+		</GenericList>
+	</Authorized>
+</AuthorizeView>
+
+
 
 @code {
 	private List<Category>? categorias;
@@ -55,11 +63,27 @@
 		var url1 = $"/api/categories/list?page={page}&filter={filter}";
 		var url2 = $"/api/categories/totalpages?filter={filter}";
 
-		var response = await repositorio.Get<List<Category>>(url1);
-		var response2 = await repositorio.Get<int>(url2);
+		try
+		{
+			var response = await repositorio.Get<List<Category>>(url1);
+			var response2 = await repositorio.Get<int>(url2);
+			categorias = response.Response;
+			totalPages = response2.Response;
+		}
+		catch (HttpRequestException e)
+		{
+			// if (response is { Error: true, HttpResponseMessage.StatusCode: HttpStatusCode.Unauthorized })
+			// {
+			// 	await alert.FireAsync("Error", "No estas autorizado para ingresar a este recurso");
+			// 	nav.NavigateTo("/");
+			// 	return;
+			// }
 
-		categorias = response.Response;
-		totalPages = response2.Response;
+			Console.WriteLine(e);
+			throw;
+		}
+
+		
 	}
 
 	private async Task Delete(int id)

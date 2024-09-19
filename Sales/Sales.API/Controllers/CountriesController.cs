@@ -43,8 +43,15 @@ namespace Sales.API.Controllers
 			return Ok(totalPages);
         }
 
+		[AllowAnonymous]
+        [HttpGet("combo")]
+        public async Task<IActionResult> GetComboAsync()
+        {
+	        return Ok(await _context.Countries.ToListAsync());
+        }
 
-        [HttpGet("listfull")]
+
+		[HttpGet("listfull")]
         public async Task<IActionResult> GetFullAsync()
         {
 	        var consulta = await _context.Countries

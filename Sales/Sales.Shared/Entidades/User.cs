@@ -12,7 +12,7 @@ namespace Sales.Shared.Entidades
 		public string Name { get; set; } = null!;
 
 		[Display(Name = "Foto")]
-		public string? Photo { get; set; }
+		public string Photo { get; set; } = string.Empty;
 
 		[Display(Name = "Tipo de Usuario")]
 		public UserType Usertype { get; set; }

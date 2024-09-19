@@ -2,7 +2,6 @@
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Sales.API.Servicios;
 using Sales.Shared.DTO;
@@ -45,7 +44,7 @@ namespace Sales.API.Controllers
             {
                 new(ClaimTypes.Name, user.Email!),
                 new(ClaimTypes.Role, user.Usertype.ToString()),
-                new("Photo", user.Photo!),
+                new("Photo", user.Photo),
                 new("CityId", user.CityId.ToString())
             };
 
